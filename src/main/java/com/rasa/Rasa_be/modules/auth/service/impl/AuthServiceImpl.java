@@ -60,6 +60,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         String otp = String.format("%06d", secureRandom.nextInt(1_000_000));
+        log.info("New OTP: {}", otp);
         redisOtpService.storeOtp(email, otp);
 
         log.info("Generated OTP for email: {}. (Dispatching via RabbitMQ)", email);
@@ -107,6 +108,21 @@ public class AuthServiceImpl implements AuthService {
 
         log.info("User authenticated successfully: {}", user.getId());
         return createSessionAndGenerateTokens(user, deviceInfo, ipAddress);
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public UserResponse getCurrentUser(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new AppException(AppErrorCode.RESOURCE_NOT_FOUND, "User not found"));
+
+        return new UserResponse(
+                user.getId(),
+                user.getEmail(),
+                user.isVerified(),
+                user.getAuthProvider(),
+                user.getCreatedAt()
+        );
     }
 
     @Override
@@ -194,7 +210,7 @@ public class AuthServiceImpl implements AuthService {
                 .expiresAt(LocalDateTime.now().plusDays(30))
                 .build();
 
-        user.addSession(session);
+//        user.addSession(session);
         userSessionRepository.save(session);
 
         String accessToken = jwtTokenService.generateAccessToken(user.getId(), user.getEmail());

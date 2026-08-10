@@ -1,7 +1,9 @@
 package com.rasa.Rasa_be.modules.auth.controller;
 
+import com.rasa.Rasa_be.config.security.UserPrincipal;
 import com.rasa.Rasa_be.modules.auth.dto.*;
 import com.rasa.Rasa_be.modules.auth.service.AuthService;
+import com.rasa.Rasa_be.modules.auth.service.OAuthService;
 import com.rasa.Rasa_be.modules.shared.dto.ApiResponse;
 import com.rasa.Rasa_be.modules.shared.dto.MessageResponse;
 import jakarta.servlet.http.HttpServletRequest;
@@ -10,10 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @RestController
@@ -22,6 +24,7 @@ import java.util.UUID;
 public class AuthController {
 
     private final AuthService authService;
+    private final OAuthService oAuthService;
 
     @PostMapping("/initiate")
     public ResponseEntity<ApiResponse<MessageResponse>> initiateAuth(@Valid @RequestBody InitiateAuthRequest request) {
@@ -65,6 +68,31 @@ public class AuthController {
         );
     }
 
+    @PostMapping("/oauth/google")
+    public ResponseEntity<ApiResponse<TokenResponse>> loginWithGoogle(
+            @Valid @RequestBody OAuthLoginRequest request,
+            HttpServletRequest httpRequest) {
+
+        String deviceInfo = httpRequest.getHeader("User-Agent");
+        String ipAddress = getClientIp(httpRequest);
+        log.info("Received Google OAuth login request from IP: {}", ipAddress);
+
+        TokenResponse tokens = oAuthService.processGoogleLogin(request, deviceInfo, ipAddress);
+
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK, tokens, "Google authentication successful.")
+        );
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<ApiResponse<UserResponse>> getCurrentUser(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("Fetching profile for authenticated user: {}", principal.id());
+        UserResponse response = authService.getCurrentUser(principal.id());
+        return ResponseEntity.ok(
+                ApiResponse.success(HttpStatus.OK, response, "User profile retrieved")
+        );
+    }
+
     @PostMapping("/refresh")
     public ResponseEntity<ApiResponse<TokenResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         log.info("Received token refresh request.");
@@ -85,20 +113,20 @@ public class AuthController {
         );
     }
 
-    @GetMapping("/sessions/{userId}")
-    public ResponseEntity<ApiResponse<List<UserSessionResponse>>> getActiveSessions(@PathVariable UUID userId) {
-        log.info("Retrieving active sessions for user: {}", userId);
-        List<UserSessionResponse> sessions = authService.getActiveSessions(userId);
+    @GetMapping("/sessions")
+    public ResponseEntity<ApiResponse<List<UserSessionResponse>>> getActiveSessions(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("Retrieving active sessions for user: {}", principal.id());
+        List<UserSessionResponse> sessions = authService.getActiveSessions(principal.id());
 
         return ResponseEntity.ok(
                 ApiResponse.success(HttpStatus.OK, sessions, "Active sessions retrieved successfully.")
         );
     }
 
-    @DeleteMapping("/sessions/{userId}")
-    public ResponseEntity<ApiResponse<MessageResponse>> revokeAllSessions(@PathVariable UUID userId) {
-        log.info("Revoking all active sessions for user: {}", userId);
-        MessageResponse response = authService.revokeAllSessions(userId);
+    @DeleteMapping("/sessions")
+    public ResponseEntity<ApiResponse<MessageResponse>> revokeAllSessions(@AuthenticationPrincipal UserPrincipal principal) {
+        log.info("Revoking all active sessions for user: {}", principal.id());
+        MessageResponse response = authService.revokeAllSessions(principal.id());
 
         return ResponseEntity.ok(
                 ApiResponse.success(HttpStatus.OK, response, response.message())

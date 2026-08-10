@@ -45,6 +45,9 @@ spring:
         initialize-schema: false
 rasa:
   security:
+    oauth:
+      google:
+        client-id: ${OAUTH_GOOGLE_CLIENT_ID}
     jwt:
       private-key-path: ${JWT_PRIVATE_KEY_PATH}
       public-key-path: ${JWT_PUBLIC_KEY_PATH}

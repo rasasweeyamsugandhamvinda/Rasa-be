@@ -14,4 +14,5 @@ public interface AuthService {
     public MessageResponse logout(String rawRefreshToken);
     public MessageResponse revokeAllSessions(UUID userId);
     public List<UserSessionResponse> getActiveSessions(UUID userId);
+    public UserResponse getCurrentUser(UUID userId);
 }
