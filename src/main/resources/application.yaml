@@ -1,4 +1,8 @@
 spring:
+  profiles:
+    active: dev
+  config:
+    import: classpath:context-rules.yml
   application:
     name: Rasa-be
 
@@ -33,16 +37,17 @@ spring:
     username: ${RABBITMQ_USER:guest}
     password: ${RABBITMQ_PASSWORD:guest}
 
-
   ai:
     openai:
-      api-key: ${OPENAI_API_KEY}
-    vectorstore:
-      pgvector:
-        index-type: HNSW
-        distance-type: COSINE_DISTANCE
-        dimensions: 1536
-        initialize-schema: false
+      api-key: ${GROQ_API_KEY}
+      base-url: https://api.groq.com/openai/v1
+      chat:
+        options:
+          model: openai/gpt-oss-120b
+          temperature: 0.0
+      client:
+        connect-timeout: 2s
+        read-timeout: 3s
 rasa:
   security:
     oauth:

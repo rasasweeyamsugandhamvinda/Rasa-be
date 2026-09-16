@@ -10,6 +10,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -62,6 +63,19 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(NoHandlerFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNoHandlerFoundException(NoHandlerFoundException ex) {
         return handleAppException(new AppException(AppErrorCode.RESOURCE_NOT_FOUND, "The requested endpoint does not exist."));
+    }
+
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<Void>> handleHttpMessageNotReadable(HttpMessageNotReadableException ex) {
+        log.warn("Malformed request body: {}", ex.getMostSpecificCause().getMessage());
+
+        Map<String, Object> errorMetadata = new HashMap<>();
+        errorMetadata.put("errorCode", AppErrorCode.VALIDATION_FAILED.getCode());
+        errorMetadata.put("cause", ex.getMostSpecificCause().getMessage());
+
+        return ResponseEntity.status(AppErrorCode.VALIDATION_FAILED.getHttpStatus())
+                .body(ApiResponse.error(AppErrorCode.VALIDATION_FAILED.getHttpStatus(),
+                        "Malformed request body. Please check enum values and field types.", errorMetadata));
     }
 
     @ExceptionHandler(Exception.class)
