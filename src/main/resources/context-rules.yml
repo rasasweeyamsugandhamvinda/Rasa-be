@@ -1,0 +1,96 @@
+recommendation:
+  rules:
+    version: 3
+    lastUpdated: "2026-08-26"
+
+    # Ephemeral, per-request signal
+    occasion:
+      romantic_evening:
+        accordDeltas: { amber: 25, vanilla: 20, oud: 15, fresh: -15 }
+        sillageTarget: { min: 60 }
+        reason: "romantic evening calls for warmer, closer-projecting scents"
+      office_daytime:
+        accordDeltas: { fresh: 20, citrus: 15, powdery: 10, animalic: -20 }
+        sillageTarget: { max: 55 }
+        reason: "office settings favor restrained, clean projection"
+
+    mood:
+      confident:
+        accordDeltas: { woody: 15, warm_spicy: 10 }
+        reason: "confident moods pair well with grounded, spicy-woody profiles"
+      relaxed:
+        accordDeltas: { aquatic: 15, fresh: 10, warm_spicy: -10 }
+        reason: "relaxed moods favor lighter, airier profiles"
+
+    # Persistent lifestyle signal
+    # Persistent lifestyle signal
+    climate:
+      tropical_humid:
+        accordDeltas: { fresh: 15, aquatic: 10, gourmand: -15 }
+        longevityTarget: { min: 50 }
+        reason: "humid climates favor fresh profiles with staying power"
+      hot_semi_arid:
+        accordDeltas: { citrus: 15, woody: 10, sweet: -10 }
+        longevityTarget: { min: 60 }
+        reason: "dry heat requires sustained notes that do not evaporate quickly"
+      moderate_temperate:
+        accordDeltas: { floral: 10, woody: 10 }
+        reason: "temperate weather provides an open canvas for versatile notes"
+
+      # Add the missing climates to satisfy the contract:
+      hot_humid:
+        reason: "hot and humid environments favor light, aquatic profiles"
+      hot_arid:
+        reason: "arid heat requires strong base notes"
+      subtropical:
+        reason: "subtropical weather handles versatile, balanced profiles"
+      cool_temperate:
+        reason: "cool weather allows for richer, warmer accords"
+      mountain_cool:
+        reason: "mountain cold provides a canvas for dense, heavy projecting scents"
+
+    primaryEnvironment:
+      AC_OFFICE:
+        sillageTarget: { max: 50 }
+        reason: "enclosed AC spaces need lower projection to avoid overwhelming"
+      OUTDOORS:
+        sillageTarget: { min: 55 }
+        longevityTarget: { min: 60 }
+        reason: "outdoor wear needs to fight ambient air movement"
+      ACTIVE_GYM:
+        sillageTarget: { max: 45 }
+        accordDeltas: { fresh: 25, aquatic: 20, sweet: -25, heavy: -30 }
+        reason: "gym environments mandate unobtrusive, fresh profiles"
+
+    sweatLevel:
+      HIGH:
+        longevityTarget: { min: 65 }
+        accordDeltas: { fresh: 10, powdery: 10 }
+        reason: "high perspiration needs a scent that holds structure through the day"
+      MODERATE:
+        longevityTarget: { min: 45 }
+      LOW:
+
+    vibePreference:
+      PROFESSIONAL:
+        accordDeltas: { woody: 15, aromatic: 15, sweet: -15 }
+        sillageTarget: { max: 55 }
+        reason: "professional vibes prioritize structured, refined profiles"
+      SEDUCTIVE:
+        accordDeltas: { vanilla: 20, amber: 20, warm_spicy: 15 }
+        sillageTarget: { min: 55 }
+        reason: "seductive vibes lean into rich, alluring gourmand and oriental accords"
+      FRESH_CASUAL:
+        accordDeltas: { citrus: 20, aquatic: 15, fresh: 15 }
+        reason: "fresh casual vibes keep everyday wear airy and uplifting"
+      LOUD_ATTENTION_GRABBING:
+        accordDeltas: { sweet: 20, animalic: 15, warm_spicy: 15 }
+        sillageTarget: { min: 70 }
+        longevityTarget: { min: 70 }
+        reason: "loud profiles demand high projection and dense, impactful accords"
+
+    # Non-linear interaction exceptions
+    interactionOverrides:
+      - when: { primaryEnvironment: "OUTDOORS", sweatLevel: "HIGH" }
+        multiplySillageTargetMin: 1.2
+        reason: "outdoor + heavy perspiration compounds projection loss beyond either factor alone"
